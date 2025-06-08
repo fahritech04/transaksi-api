@@ -33,6 +33,7 @@ def create_transaksi():
     gambar = data.get('gambar')
     status_pembayaran = data.get('status_pembayaran')
     catatan = data.get('catatan')
+    email = data.get('email')  # Menambahkan email
 
     # Validasi pilihan mata uang dan status pembayaran
     valid_mata_uang = ['USD', 'IDR']
@@ -44,17 +45,17 @@ def create_transaksi():
     if status_pembayaran not in valid_status:
         return jsonify({'error': 'Status pembayaran tidak valid'}), 400
 
-    if not all([nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, status_pembayaran]):
+    if not all([nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, status_pembayaran, email]):
         return jsonify({'error': 'Semua field wajib diisi'}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT INTO transaksi (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO transaksi (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *;
-        """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan))
+        """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email))
         new_transaksi = cur.fetchone()
         conn.commit()
         cur.close()
@@ -65,30 +66,6 @@ def create_transaksi():
         cur.close()
         conn.close()
         return jsonify({'error': str(e)}), 500
-
-# READ: Mendapatkan semua transaksi
-@app.route('/api/transaksi', methods=['GET'])
-def get_transaksi():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM transaksi;')
-    transaksi = cur.fetchall()
-    cur.close()
-    conn.close()
-    return jsonify(transaksi)
-
-# READ: Mendapatkan transaksi berdasarkan ID
-@app.route('/api/transaksi/<int:id>', methods=['GET'])
-def get_transaksi_by_id(id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM transaksi WHERE id = %s;', (id,))
-    transaksi = cur.fetchone()
-    cur.close()
-    conn.close()
-    if transaksi is None:
-        return jsonify({'error': 'Transaksi tidak ditemukan'}), 404
-    return jsonify(transaksi)
 
 # UPDATE: Memperbarui transaksi berdasarkan ID
 @app.route('/api/transaksi/<int:id>', methods=['PUT'])
@@ -106,6 +83,7 @@ def update_transaksi(id):
     gambar = data.get('gambar')
     status_pembayaran = data.get('status_pembayaran')
     catatan = data.get('catatan')
+    email = data.get('email')  # Menambahkan email
 
     # Validasi pilihan mata uang dan status pembayaran
     valid_mata_uang = ['USD', 'IDR']
@@ -122,10 +100,10 @@ def update_transaksi(id):
     cur.execute("""
         UPDATE transaksi
         SET nama_transaksi = %s, mata_uang_asal = %s, mata_uang_tujuan = %s, jumlah_usd = %s, jumlah_idr = %s, nilai_tukar = %s, 
-            tanggal = %s, kategori_transaksi = %s, gambar = %s, status_pembayaran = %s, catatan = %s
+            tanggal = %s, kategori_transaksi = %s, gambar = %s, status_pembayaran = %s, catatan = %s, email = %s
         WHERE id = %s
         RETURNING *;
-    """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, id))
+    """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email, id))
     updated_transaksi = cur.fetchone()
     conn.commit()
     cur.close()
@@ -133,20 +111,6 @@ def update_transaksi(id):
     if updated_transaksi is None:
         return jsonify({'error': 'Transaksi tidak ditemukan'}), 404
     return jsonify({'message': 'Transaksi berhasil diperbarui', 'transaksi': updated_transaksi})
-
-# DELETE: Menghapus transaksi berdasarkan ID
-@app.route('/api/transaksi/<int:id>', methods=['DELETE'])
-def delete_transaksi(id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('DELETE FROM transaksi WHERE id = %s RETURNING *;', (id,))
-    deleted_transaksi = cur.fetchone()
-    conn.commit()
-    cur.close()
-    conn.close()
-    if deleted_transaksi is None:
-        return jsonify({'error': 'Transaksi tidak ditemukan'}), 404
-    return jsonify({'message': 'Transaksi berhasil dihapus', 'transaksi': deleted_transaksi})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=PORT, debug=True)
