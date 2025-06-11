@@ -33,6 +33,7 @@ def create_transaksi():
     gambar = data.get('gambar')
     status_pembayaran = data.get('status_pembayaran')
     catatan = data.get('catatan')
+    email = data.get('email')
 
     # Validasi pilihan mata uang dan status pembayaran
     valid_mata_uang = ['USD', 'IDR']
@@ -51,10 +52,10 @@ def create_transaksi():
     cur = conn.cursor()
     try:
         cur.execute("""
-            INSERT INTO transaksi (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO transaksi (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING *;
-        """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan))
+        """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email))
         new_transaksi = cur.fetchone()
         conn.commit()
         cur.close()
@@ -106,6 +107,7 @@ def update_transaksi(id):
     gambar = data.get('gambar')
     status_pembayaran = data.get('status_pembayaran')
     catatan = data.get('catatan')
+    email = data.get('email')
 
     # Validasi pilihan mata uang dan status pembayaran
     valid_mata_uang = ['USD', 'IDR']
@@ -122,10 +124,10 @@ def update_transaksi(id):
     cur.execute("""
         UPDATE transaksi
         SET nama_transaksi = %s, mata_uang_asal = %s, mata_uang_tujuan = %s, jumlah_usd = %s, jumlah_idr = %s, nilai_tukar = %s, 
-            tanggal = %s, kategori_transaksi = %s, gambar = %s, status_pembayaran = %s, catatan = %s
+            tanggal = %s, kategori_transaksi = %s, gambar = %s, status_pembayaran = %s, catatan = %s, email = %s
         WHERE id = %s
         RETURNING *;
-    """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, id))
+    """, (nama_transaksi, mata_uang_asal, mata_uang_tujuan, jumlah_usd, jumlah_idr, nilai_tukar, tanggal, kategori_transaksi, gambar, status_pembayaran, catatan, email, id))
     updated_transaksi = cur.fetchone()
     conn.commit()
     cur.close()
